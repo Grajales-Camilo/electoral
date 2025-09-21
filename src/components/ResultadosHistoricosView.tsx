@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import MapaAntioquia from './MapaAntioquia';
 import MapaAMVA from './MapaAMVA';
 import MapaMedellin from './MapaMedellin';
-import AnalisisAntioquia from './AnalisisAntioquia'; // Importar el componente de análisis
+import AnalisisAntioquia from './AnalisisAntioquia';
+import AnalisisAMVA from './AnalisisAMVA';
+import AnalisisMedellin from './AnalisisMedellin'; // Importar el nuevo componente de análisis
 
 type Tab = 'antioquia' | 'amva' | 'medellin';
 
@@ -57,8 +59,26 @@ const ResultadosHistoricosView: React.FC<ResultadosHistoricosViewProps> = ({ onB
             </div>
           </div>
         )}
-        {activeTab === 'amva' && <MapaAMVA setActiveTab={setActiveTab} />}
-        {activeTab === 'medellin' && <MapaMedellin />}
+        {activeTab === 'amva' && (
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="lg:w-1/2">
+              <MapaAMVA setActiveTab={setActiveTab} />
+            </div>
+            <div className="lg:w-1/2">
+              <AnalisisAMVA />
+            </div>
+          </div>
+        )}
+        {activeTab === 'medellin' && (
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="lg:w-1/2">
+                <MapaMedellin />
+              </div>
+              <div className="lg:w-1/2">
+                <AnalisisMedellin />
+              </div>
+            </div>
+        )}
       </div>
     </div>
   );

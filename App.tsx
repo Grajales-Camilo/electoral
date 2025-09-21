@@ -2,13 +2,14 @@ import React, { useState, useRef } from 'react';
 import { Card } from './src/components/Card';
 import { TutorIcon, DashboardIcon, ReloadIcon, SpinnerIcon, AnalysisIcon, WhatsAppIcon } from './src/components/icons';
 import ResultadosHistoricosView from './src/components/ResultadosHistoricosView';
+import GestionVoluntarios from './src/components/GestionVoluntarios'; // Tarea 2.1: Importar
 
 // URLs de las herramientas
-const VOLUNTARIOS = 'URL_VOLUNTARIOS';
 const VOTANTES = 'URL_VOTANTES';
 
-// Identificador para la nueva vista
+// Identificadores para las vistas
 const VISTA_RESULTADOS = 'resultados';
+const VISTA_VOLUNTARIOS = 'voluntarios'; // Tarea 2.2: Nuevo identificador de vista
 
 const App: React.FC = () => {
   const [selectedToolUrl, setSelectedToolUrl] = useState<string | null>(null);
@@ -62,22 +63,21 @@ const App: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             <Card
               onClick={() => {
-                setIsReloading(true);
-                setSelectedToolUrl(VOLUNTARIOS);
-              }}
-              title={<><TutorIcon /> Voluntari@s 🤳👨‍💻</>}
-              subtitle="Base de Datos Voluntarios y Gestión de Materiales"
-              description="Utiliza esta interfaz para gestionar el trabajo con los voluntarios."
-              imageUrl="images/IVC4.png"
-            />
-            <Card
-              onClick={() => {
                 setSelectedView(VISTA_RESULTADOS);
               }}
               title={<><DashboardIcon /> Resultados Históricos 👨‍💻📊</>}
               subtitle="Seguimiento y Analítica"
               description="Visualiza los resultados electorales históricos del PH, el progreso y los reportes cualitativos de opinión."
               imageUrl="images/IVC3.png"
+            />
+            <Card
+              onClick={() => {
+                setSelectedView(VISTA_VOLUNTARIOS); // Tarea 2.3: Actualizar onClick
+              }}
+              title={<><TutorIcon /> Voluntari@s 🤳👨‍💻</>}
+              subtitle="Base de Datos Voluntarios y Gestión de Materiales"
+              description="Utiliza esta interfaz para gestionar el trabajo con los voluntarios."
+              imageUrl="images/IVC4.png"
             />
               <Card
               onClick={() => {
@@ -98,8 +98,13 @@ const App: React.FC = () => {
     );
   }
 
+  // Tarea 2.4: Lógica de renderizado
   if (selectedView === VISTA_RESULTADOS) {
     return <ResultadosHistoricosView onBack={resetSelection} />;
+  }
+
+  if (selectedView === VISTA_VOLUNTARIOS) {
+    return <GestionVoluntarios onBack={resetSelection} />;
   }
   
   return (
