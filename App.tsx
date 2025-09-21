@@ -1,18 +1,20 @@
 import React, { useState, useRef } from 'react';
-import { Card } from './components/Card';
-import { TutorIcon, DashboardIcon, ReloadIcon, SpinnerIcon, AnalysisIcon, WhatsAppIcon } from './components/icons';
+import { Card } from './src/components/Card';
+import { TutorIcon, DashboardIcon, ReloadIcon, SpinnerIcon, AnalysisIcon, WhatsAppIcon } from './src/components/icons';
+import ResultadosHistoricosView from './src/components/ResultadosHistoricosView';
 
 // URLs de las herramientas
-const TUTOR_URL = 'https://script.google.com/macros/s/AKfycbyMwWKTYtgw-7cO673AygNYSj4fHF3xYz_yOYsswZmVGVpGDakHRDAeHDYxy1urdAY1/exec';
-const COORDINATOR_URL = 'https://script.google.com/macros/s/AKfycbyYTcl_UA4r2_9Glh-FiJ-1sF9F3xBhRtEm06v42k83MVjuJVw08J1gqR0WphWmrnGO/exec';
-const ANALYSIS_URL = 'https://script.google.com/macros/s/AKfycbxZUVBypMoDDwI3hudaYEk2Dkre8iwKeqv0PBLcekfFAMPRUy0GaDYyuXC9LVNHEkE/exec';
+const VOLUNTARIOS = 'URL_VOLUNTARIOS';
+const VOTANTES = 'URL_VOTANTES';
+
+// Identificador para la nueva vista
+const VISTA_RESULTADOS = 'resultados';
 
 const App: React.FC = () => {
-  // --- GESTIÓN DE ESTADO ---
   const [selectedToolUrl, setSelectedToolUrl] = useState<string | null>(null);
+  const [selectedView, setSelectedView] = useState<string | null>(null);
   const [isReloading, setIsReloading] = useState<boolean>(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
 
   const handleReload = () => {
     if (iframeRef.current) {
@@ -21,15 +23,17 @@ const App: React.FC = () => {
     }
   };
 
-  // --- LÓGICA DE RENDERIZADO ---
+  const resetSelection = () => {
+    setSelectedToolUrl(null);
+    setSelectedView(null);
+  }
 
-  // 1. Pantalla del Menú Principal
-  if (!selectedToolUrl) {
+  if (!selectedToolUrl && !selectedView) {
     return (
       <div className="min-h-screen bg-[#f8f9fa] text-slate-800 font-sans">
         <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
             <div className="container mx-auto flex justify-between items-center">
-                 <h1 className="text-xl font-bold text-slate-900">
+                <h1 className="text-xl font-bold text-slate-900">
                   Gestión Campaña IVC 2026
                 </h1>
                 <div className="flex items-center gap-4">
@@ -49,39 +53,41 @@ const App: React.FC = () => {
         <main className="container mx-auto px-4 py-12 sm:py-16">
           <div className="text-center mb-12 md:mb-16">
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-              Menú Principal
+              La ProgreAPP
             </h1>
             <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-              Bienvenido. Selecciona una herramienta para continuar.
+              Selecciona una herramienta.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             <Card
               onClick={() => {
                 setIsReloading(true);
-                setSelectedToolUrl(TUTOR_URL);
+                setSelectedToolUrl(VOLUNTARIOS);
               }}
-              title={<><TutorIcon /> Herramienta para Coordinadores 👨‍🏫</>}
-              subtitle="Base de Datos Voluntarios"
+              title={<><TutorIcon /> Voluntari@s 🤳👨‍💻</>}
+              subtitle="Base de Datos Voluntarios y Gestión de Materiales"
               description="Utiliza esta interfaz para gestionar el trabajo con los voluntarios."
+              imageUrl="images/IVC4.png"
             />
             <Card
               onClick={() => {
-                setIsReloading(true);
-                setSelectedToolUrl(COORDINATOR_URL);
+                setSelectedView(VISTA_RESULTADOS);
               }}
               title={<><DashboardIcon /> Resultados Históricos 👨‍💻📊</>}
               subtitle="Seguimiento y Analítica"
               description="Visualiza los resultados electorales históricos del PH, el progreso y los reportes cualitativos de opinión."
+              imageUrl="images/IVC3.png"
             />
-             <Card
+              <Card
               onClick={() => {
                 setIsReloading(true);
-                setSelectedToolUrl(ANALYSIS_URL);
+                setSelectedToolUrl(VOTANTES);
               }}
-              title={<><AnalysisIcon /> Tablas de Análisis Granular 📋</>}
+              title={<><AnalysisIcon /> Votantes 📋 👩‍⚕️👷</>}
               subtitle="Filtro de datos y consultas cruzadas"
               description="Construye vistas de tablas detalladas para el análisis granular del perfil de los votantes."
+              imageUrl="images/IVC1.png"
             />
           </div>
         </main>
@@ -92,13 +98,16 @@ const App: React.FC = () => {
     );
   }
 
-  // 2. Vista del Iframe (Herramienta seleccionada)
+  if (selectedView === VISTA_RESULTADOS) {
+    return <ResultadosHistoricosView onBack={resetSelection} />;
+  }
+  
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-6 lg:p-8 flex flex-col">
       <div className="flex-shrink-0 mb-4 flex items-center gap-4">
         <button
-          onClick={() => setSelectedToolUrl(null)}
-          className="bg-brand-blue-600 hover:bg-brand-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+          onClick={resetSelection}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
         >
           ← Volver al Menú
         </button>
@@ -113,7 +122,7 @@ const App: React.FC = () => {
 
       <iframe
         ref={iframeRef}
-        src={selectedToolUrl}
+        src={selectedToolUrl!}
         className="flex-grow w-full border-2 border-slate-200 rounded-xl"
         title="Herramienta de gestión"
         onLoad={() => setIsReloading(false)}
