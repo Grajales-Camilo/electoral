@@ -1,4 +1,5 @@
-import React, { useState, useEffect, Suspense, lazy, useMemo } from 'react';
+
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import { CloseIcon, SpinnerIcon } from './icons';
@@ -78,12 +79,6 @@ interface DetalleMunicipioPublicidad {
 // --- TIPO PARA PESTAÑAS ---
 type Tab = 'general' | 'geografico' | 'lista';
 
-// --- NUEVOS ESTADOS Y TIPOS PARA MODAL DE PROFESIÓN ---
-interface SelectedProfesion {
-    nombre: string;
-    voluntarios: Voluntario[];
-}
-
 const GestionVoluntarios: React.FC<GestionVoluntariosProps> = ({ onBack }) => {
   const [voluntarios, setVoluntarios] = useState<Voluntario[]>([]);
   const [comiteAnalysis, setComiteAnalysis] = useState<ComiteAnalysis[]>([]);
@@ -100,11 +95,6 @@ const GestionVoluntarios: React.FC<GestionVoluntariosProps> = ({ onBack }) => {
   const [selectedVoluntario, setSelectedVoluntario] = useState<Voluntario | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('general');
 
-  // --- NUEVOS ESTADOS PARA FILTROS Y MODAL DE PROFESIÓN ---
-  const [selectedProfesion, setSelectedProfesion] = useState<SelectedProfesion | null>(null);
-  const [filtroMunicipio, setFiltroMunicipio] = useState<string>('');
-  const [filtroComite, setFiltroComite] = useState<string>('');
-  
   useEffect(() => {
     const fetchAndAnalyzeAllData = async () => {
       setLoading(true);
@@ -198,24 +188,6 @@ const GestionVoluntarios: React.FC<GestionVoluntariosProps> = ({ onBack }) => {
         .sort((a, b) => b.solicitudes - a.solicitudes);
     setDetallePublicidad(result);
   }, [selectedPublicidad, publicidadPorMunicipio]);
-  
-  // --- LÓGICA PARA NUEVAS FUNCIONALIDADES ---
-  
-  const handleProfesionClick = (profesionNombre: string) => {
-    const voluntariosConProfesion = voluntarios.filter(v => (v.profesion || 'No especificada') === profesionNombre);
-    setSelectedProfesion({ nombre: profesionNombre, voluntarios: voluntariosConProfesion });
-  };
-  
-  const uniqueMunicipios = useMemo(() => Array.from(new Set(voluntarios.map(v => v.municipio))).sort(), [voluntarios]);
-  const uniqueComites = useMemo(() => Array.from(new Set(voluntarios.map(v => v.comite))).sort(), [voluntarios]);
-
-  const filteredVoluntarios = useMemo(() => {
-    return voluntarios.filter(vol => {
-        const matchMunicipio = !filtroMunicipio || vol.municipio === filtroMunicipio;
-        const matchComite = !filtroComite || vol.comite === filtroComite;
-        return matchMunicipio && matchComite;
-    });
-  }, [voluntarios, filtroMunicipio, filtroComite]);
 
   const formatPhoneNumber = (phone: string) => phone.replace(/[^0-9]/g, '');
 
@@ -226,15 +198,14 @@ const GestionVoluntarios: React.FC<GestionVoluntariosProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-6 lg:p-8 flex flex-col">
-        {/* === 1. CAMBIOS EN CABECERA Y TABS === */}
         <div className="flex-shrink-0 mb-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
                 <button onClick={onBack} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">← Volver</button>
-                <h2 className="text-2xl font-bold text-slate-800">Gestión de Voluntarios</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Gestión y Análisis de Voluntarios</h2>
             </div>
             <div className="flex items-center border border-slate-300 rounded-lg p-1 bg-slate-100">
-                <button onClick={() => setActiveTab('general')} className={`px-4 py-2 text-sm font-semibold rounded-md ${activeTab === 'general' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}>Información General</button>
-                <button onClick={() => setActiveTab('geografico')} className={`px-4 py-2 text-sm font-semibold rounded-md ${activeTab === 'geografico' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}>Presencia de Voluntarios</button>
+                <button onClick={() => setActiveTab('general')} className={`px-4 py-2 text-sm font-semibold rounded-md ${activeTab === 'general' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}>Análisis General</button>
+                <button onClick={() => setActiveTab('geografico')} className={`px-4 py-2 text-sm font-semibold rounded-md ${activeTab === 'geografico' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}>Análisis Geográfico</button>
                 <button onClick={() => setActiveTab('lista')} className={`px-4 py-2 text-sm font-semibold rounded-md ${activeTab === 'lista' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}>Listado de Voluntarios</button>
             </div>
         </div>
@@ -243,33 +214,33 @@ const GestionVoluntarios: React.FC<GestionVoluntariosProps> = ({ onBack }) => {
         <div className="flex-grow w-full">
           {activeTab === 'general' && (
             <div className="space-y-8">
-              {/* === 2. CAMBIO EN ANÁLISIS POR COMITÉ: TÍTULO Y SIN TABLA === */}
+              {/* --- ANÁLISIS POR COMITÉ --- */}
               <div className="p-6 bg-white rounded-lg shadow-md">
-                <h3 className="text-xl font-bold text-slate-700 mb-4">Comités:</h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <h3 className="text-xl font-bold text-slate-700 mb-4">Análisis por Comité</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                  <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div><h4 className="text-lg font-semibold text-slate-600 mb-2 text-center">Voluntarios por Comité</h4><Bar options={barChartOptions} data={comiteBarData} /></div>
                     <div className="flex flex-col justify-center items-center"><h4 className="text-lg font-semibold text-slate-600 mb-2 text-center">Distribución Porcentual</h4><div className="max-w-xs mx-auto"><Pie data={comitePieData} options={{ responsive: true, plugins: { legend: { position: 'bottom' as const } } }} /></div></div>
+                  </div>
+                  <div className="overflow-y-auto h-80"><h4 className="text-lg font-semibold text-slate-600 mb-4">Tabla Resumen</h4><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Comité</th><th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">N.º</th><th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">%</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{comiteAnalysis.map(item => <tr key={item.comite}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.comite}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-right font-semibold">{item.cantidad}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-right">{item.porcentaje.toFixed(1)}%</td></tr>)}</tbody></table></div>
                 </div>
               </div>
               
-              {/* === 2. INTERCAMBIO DE TARJETAS Y CAMBIO DE TÍTULOS === */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="p-6 bg-white rounded-lg shadow-md"><h3 className="text-xl font-bold text-slate-700 mb-4">Distribución por Subregión</h3><div className="overflow-x-auto h-96"><table className="min-w-full divide-y divide-slate-200 border"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Subregión</th><th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">N.º Vol.</th><th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">%</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{subregionAnalysis.map(item => <tr key={item.subregion}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.subregion}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-center">{item.cantidad}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-center">{item.porcentaje.toFixed(1)}%</td></tr>)}</tbody></table></div></div>
                   <div className="p-6 bg-white rounded-lg shadow-md"><h4 className="text-lg font-semibold text-slate-600 mb-4">Distribución por Municipio</h4><div className="overflow-y-auto h-96"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Municipio</th><th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">N.º Vol.</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{municipioAnalysis.map(item => <tr key={item.municipio}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.municipio}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-right font-semibold">{item.cantidad}</td></tr>)}</tbody></table></div></div>
+                  <div className="p-6 bg-white rounded-lg shadow-md"><h3 className="text-xl font-bold text-slate-700 mb-4">Análisis por Subregión</h3><div className="overflow-x-auto h-96"><table className="min-w-full divide-y divide-slate-200 border"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Subregión</th><th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">N.º Vol.</th><th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">%</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{subregionAnalysis.map(item => <tr key={item.subregion}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.subregion}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-center">{item.cantidad}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-center">{item.porcentaje.toFixed(1)}%</td></tr>)}</tbody></table></div></div>
               </div>
 
-              {/* === 2. CAMBIO DE TÍTULO SOLICITUDES DE PUBLICIDAD === */}
               <div className="p-6 bg-white rounded-lg shadow-md">
-                <h3 className="text-xl font-bold text-slate-700 mb-4">Solicitudes de Publicidad:</h3>
+                <h3 className="text-xl font-bold text-slate-700 mb-4">Análisis de Solicitudes de Publicidad</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   <div><h4 className="text-lg font-semibold text-slate-600 mb-4">Total Solicitudes</h4><Bar options={{ responsive: true, plugins: { legend: { display: false } } }} data={publicidadBarData} /></div>
                   <div><h4 className="text-lg font-semibold text-slate-600 mb-4">Resumen General</h4><div className="overflow-x-auto h-80"><table className="min-w-full divide-y divide-slate-200 border"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Tipo</th><th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">Total</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{publicidadGeneral.map(item => (<tr key={item.tipo}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.tipo}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-center font-bold">{item.cantidad}</td></tr>))}</tbody></table></div></div>
                   <div><h4 className="text-lg font-semibold text-slate-600 mb-4">Consulta por Municipio</h4><select value={selectedPublicidad} onChange={(e) => setSelectedPublicidad(e.target.value)} className="w-full p-2 mb-4 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">{publicidadGeneral.map(item => (<option key={item.tipo} value={item.tipo}>{item.tipo}</option>))}</select><div className="overflow-y-auto h-64"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Municipio</th><th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">Solicitudes</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{detallePublicidad.length > 0 ? detallePublicidad.map(item => (<tr key={item.municipio}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.municipio}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-right font-semibold">{item.solicitudes}</td></tr>)) : (<tr><td colSpan={2} className="text-center py-4 text-sm text-slate-500">No hay datos.</td></tr>)}</tbody></table></div></div>
                 </div>
               </div>
-              
-              {/* === 2. CAMBIO DE TÍTULO Y TABLA INTERACTIVA PARA PROFESIÓN === */}
-              <div className="p-6 bg-white rounded-lg shadow-md"><h3 className="text-xl font-bold text-slate-700 mb-4">Distribución por Profesión</h3><div className="overflow-y-auto h-96"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Profesión / Ocupación</th><th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">N.º Vol.</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{profesionAnalysis.map(item => <tr key={item.profesion} onClick={() => handleProfesionClick(item.profesion)} className="cursor-pointer hover:bg-slate-50"><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.profesion}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-right font-semibold">{item.cantidad}</td></tr>)}</tbody></table></div></div>
+                
+              <div className="p-6 bg-white rounded-lg shadow-md"><h3 className="text-xl font-bold text-slate-700 mb-4">Análisis por Profesión</h3><div className="overflow-y-auto h-96"><table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Profesión / Ocupación</th><th className="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase">N.º Vol.</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{profesionAnalysis.map(item => <tr key={item.profesion}><td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-slate-900">{item.profesion}</td><td className="px-4 py-2 whitespace-nowrap text-sm text-slate-500 text-right font-semibold">{item.cantidad}</td></tr>)}</tbody></table></div></div>
             </div>
           )}
 
@@ -284,85 +255,17 @@ const GestionVoluntarios: React.FC<GestionVoluntariosProps> = ({ onBack }) => {
                 </Suspense>
             </div>
           )}
-          
-          {/* === 3. LISTADO DE VOLUNTARIOS CON FILTROS === */}
+
           {activeTab === 'lista' && (
-            <div className="flex-grow w-full bg-white p-6 rounded-lg shadow-md flex flex-col">
-                <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                    <h3 className="text-xl font-bold text-slate-700">Listado de Voluntarios ({filteredVoluntarios.length})</h3>
-                    <div className="flex gap-4">
-                        <select value={filtroMunicipio} onChange={e => setFiltroMunicipio(e.target.value)} className="w-48 p-2 border border-slate-300 rounded-md shadow-sm">
-                            <option value="">Todos los Municipios</option>
-                            {uniqueMunicipios.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                        <select value={filtroComite} onChange={e => setFiltroComite(e.target.value)} className="w-48 p-2 border border-slate-300 rounded-md shadow-sm">
-                            <option value="">Todos los Comités</option>
-                            {uniqueComites.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-                </div>
-                <div className="overflow-y-auto flex-grow">
-                    <table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50 sticky top-0"><tr><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Teléfono</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Municipio</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Comité</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{filteredVoluntarios.map((voluntario) => <tr key={voluntario.id} onClick={() => setSelectedVoluntario(voluntario)} className="hover:bg-slate-50 cursor-pointer"><td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{voluntario.nombre}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.telefono}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.municipio}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.comite}</td></tr>)}</tbody></table>
-                </div>
+            <div className="flex-grow w-full bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h3 className="text-xl font-bold text-slate-700 mb-4">Listado de Voluntarios ({voluntarios.length})</h3>
+                <table className="min-w-full divide-y divide-slate-200"><thead className="bg-slate-50"><tr><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Teléfono</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Municipio</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Comité</th></tr></thead><tbody className="bg-white divide-y divide-slate-200">{voluntarios.map((voluntario) => <tr key={voluntario.id} onClick={() => setSelectedVoluntario(voluntario)} className="hover:bg-slate-50 cursor-pointer"><td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{voluntario.nombre}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.telefono}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.municipio}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.comite}</td></tr>)}</tbody></table>
             </div>
           )}
         </div>
       )}
 
-      {/* --- MODAL DETALLE VOLUNTARIO --- */}
-      {selectedVoluntario && 
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" onClick={() => setSelectedVoluntario(null)}>
-            <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-8 relative" onClick={e => e.stopPropagation()}>
-                <button onClick={() => setSelectedVoluntario(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><CloseIcon /></button>
-                <h3 className="text-2xl font-bold text-slate-800 mb-6">{selectedVoluntario.nombre}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                    <div className="flex flex-col"><span className="font-semibold text-slate-500">Teléfono:</span><a href={`https://wa.me/${formatPhoneNumber(selectedVoluntario.telefono)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{selectedVoluntario.telefono}</a></div>
-                    <div className="flex flex-col"><span className="font-semibold text-slate-500">Correo:</span><a href={`mailto:${selectedVoluntario.correo}`} className="text-blue-600 hover:underline">{selectedVoluntario.correo}</a></div>
-                    <p><span className="font-semibold text-slate-500">Municipio:</span> {selectedVoluntario.municipio}</p>
-                    {selectedVoluntario.comuna && <p><span className="font-semibold text-slate-500">Comuna/Vereda:</span> {selectedVoluntario.comuna}</p>}
-                    {selectedVoluntario.profesion && <p><span className="font-semibold text-slate-500">Profesión:</span> {selectedVoluntario.profesion}</p>}
-                    <p><span className="font-semibold text-slate-500">Comité:</span> {selectedVoluntario.comite}</p>
-                    {selectedVoluntario.publicidad && <p><span className="font-semibold text-slate-500">Tipo de Publicidad:</span> {Array.isArray(selectedVoluntario.publicidad) ? selectedVoluntario.publicidad.join(', ') : selectedVoluntario.publicidad}</p>}
-                </div>
-                {selectedVoluntario.observaciones && <div className="mt-6"><p className="font-semibold text-slate-500">Observaciones:</p><p className="text-slate-600 bg-slate-50 p-3 rounded-md mt-1">{selectedVoluntario.observaciones}</p></div>}
-            </div>
-        </div>
-      }
-
-      {/* --- NUEVO MODAL PARA PROFESIONES --- */}
-      {selectedProfesion &&
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" onClick={() => setSelectedProfesion(null)}>
-            <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-8 relative flex flex-col" style={{maxHeight: '90vh'}} onClick={e => e.stopPropagation()}>
-                <button onClick={() => setSelectedProfesion(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><CloseIcon /></button>
-                <div className="flex-shrink-0">
-                    <h3 className="text-2xl font-bold text-slate-800 mb-4">Voluntarios con Profesión: <span className="text-blue-600">{selectedProfesion.nombre}</span></h3>
-                    <p className="text-slate-600 mb-6">Total: {selectedProfesion.voluntarios.length} voluntarios</p>
-                </div>
-                <div className="overflow-y-auto flex-grow">
-                    <table className="min-w-full divide-y divide-slate-200">
-                        <thead className="bg-slate-50 sticky top-0">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Teléfono</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Municipio</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Comité</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-slate-200">
-                            {selectedProfesion.voluntarios.map(voluntario => (
-                                <tr key={voluntario.id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{voluntario.nombre}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.telefono}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.municipio}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{voluntario.comite}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-      }
+      {selectedVoluntario && <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4" onClick={() => setSelectedVoluntario(null)}><div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-8 relative" onClick={e => e.stopPropagation()}><button onClick={() => setSelectedVoluntario(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><CloseIcon /></button><h3 className="text-2xl font-bold text-slate-800 mb-6">{selectedVoluntario.nombre}</h3><div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm"><div className="flex flex-col"><span className="font-semibold text-slate-500">Teléfono:</span><a href={`https://wa.me/${formatPhoneNumber(selectedVoluntario.telefono)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{selectedVoluntario.telefono}</a></div><div className="flex flex-col"><span className="font-semibold text-slate-500">Correo:</span><a href={`mailto:${selectedVoluntario.correo}`} className="text-blue-600 hover:underline">{selectedVoluntario.correo}</a></div><p><span className="font-semibold text-slate-500">Municipio:</span> {selectedVoluntario.municipio}</p>{selectedVoluntario.comuna && <p><span className="font-semibold text-slate-500">Comuna/Vereda:</span> {selectedVoluntario.comuna}</p>}{selectedVoluntario.profesion && <p><span className="font-semibold text-slate-500">Profesión:</span> {selectedVoluntario.profesion}</p>}<p><span className="font-semibold text-slate-500">Comité:</span> {selectedVoluntario.comite}</p>{selectedVoluntario.publicidad && <p><span className="font-semibold text-slate-500">Tipo de Publicidad:</span> {Array.isArray(selectedVoluntario.publicidad) ? selectedVoluntario.publicidad.join(', ') : selectedVoluntario.publicidad}</p>}</div>{selectedVoluntario.observaciones && <div className="mt-6"><p className="font-semibold text-slate-500">Observaciones:</p><p className="text-slate-600 bg-slate-50 p-3 rounded-md mt-1">{selectedVoluntario.observaciones}</p></div>}</div></div>}
     </div>
   );
 };
