@@ -26,6 +26,11 @@ interface CoordenadasMap {
 // CORRECCIÓN DEFINITIVA: Se utiliza una doble aserción para satisfacer las reglas estrictas de TypeScript.
 const coordenadas = coordenadasJson as unknown as CoordenadasMap;
 
+const COORDINATE_ALIASES: Record<string, string> = {
+    'DON MATÍAS': 'DONMATÍAS',
+    'CARMEN DE VIBORAL': 'EL CARMEN DE VIBORAL',
+};
+
 // --- COMPONENTES AUXILIARES ---
 const MapResizer = () => {
   const map = useMap();
@@ -88,7 +93,8 @@ const MapaVoluntariosAntioquia: React.FC<MapaVoluntariosAntioquiaProps> = ({ vol
 
         return Object.entries(counts)
             .map(([municipioKey, total]) => {
-                const coords = coordenadas[municipioKey];
+                const coordinateKey = COORDINATE_ALIASES[municipioKey] || municipioKey;
+                const coords = coordenadas[coordinateKey];
 
                 if (coords) {
                     return (
