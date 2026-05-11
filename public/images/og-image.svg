@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <!-- Fondo gradiente -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#111827;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f2b705;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fff7cc;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Texto principal -->
+  <text x="600" y="280" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="white">
+    Partido Amarillo
+  </text>
+  
+  <!-- Subtítulo -->
+  <text x="600" y="350" font-family="Arial, sans-serif" font-size="48" text-anchor="middle" fill="white" opacity="0.9">
+    Elecciones 2026
+  </text>
+  
+  <!-- Emoji -->
+  <text x="600" y="480" font-size="120" text-anchor="middle">⚡</text>
+</svg>

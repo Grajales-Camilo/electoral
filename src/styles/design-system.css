@@ -1,0 +1,21 @@
+/* Sistema de Design simplificado para Partido Amarillo */
+
+:root {
+  /* Colores principales */
+  --primary-50: #fffbeb;
+  --primary-500: #f2b705;
+  --primary-600: #d69e00;
+  
+  /* Variables de transición */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Touch targets para accesibilidad */
+  --touch-target-min: 44px;
+}
+
+/* Utility classes esenciales */
+.touch-target {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+}

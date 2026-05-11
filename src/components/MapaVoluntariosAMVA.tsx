@@ -12,9 +12,7 @@ import coordenadasJson from '../coordenadas_municipios.json';
 // --- INTERFACES y TIPOS ---
 interface Voluntario {
   id: string;
-  nombre: string;
   municipio: string;
-  profesion?: string;
 }
 
 interface MapaVoluntariosAMVAProps {
@@ -25,7 +23,7 @@ interface CoordenadasMap {
   [key: string]: [number, number];
 }
 
-// CORRECCIÓN DEFINITIVA: Se utiliza una doble aserción para satisfacer las reglas estrictas de TypeScript.
+// CORRECCIÓN DEFINITIVA: Se utiliza una doble aserción para satisfazer las reglas estrictas de TypeScript.
 const coordenadas = coordenadasJson as unknown as CoordenadasMap;
 
 // --- COMPONENTES AUXILIARES ---
@@ -90,19 +88,23 @@ const MapaVoluntariosAMVA: React.FC<MapaVoluntariosAMVAProps> = ({ voluntarios }
         const voluntariosAMVA = voluntarios.filter(v => 
             MUNICIPIOS_AMVA.includes((v.municipio || '').toUpperCase().trim())
         );
-        
-        return voluntariosAMVA
-            .map(voluntario => {
-                const municipioKey = (voluntario.municipio || '').toUpperCase().trim();
+
+        const counts = voluntariosAMVA.reduce<Record<string, number>>((acc, voluntario) => {
+            const municipioKey = (voluntario.municipio || '').toUpperCase().trim();
+            if (municipioKey) acc[municipioKey] = (acc[municipioKey] || 0) + 1;
+            return acc;
+        }, {});
+
+        return Object.entries(counts)
+            .map(([municipioKey, total]) => {
                 const coords = coordenadas[municipioKey];
 
                 if (coords) {
                     return (
-                        <Marker key={voluntario.id} position={coords} icon={defaultIcon}>
+                        <Marker key={municipioKey} position={coords} icon={defaultIcon}>
                             <Tooltip>
-                                <strong>{voluntario.nombre}</strong><br />
-                                {voluntario.municipio}<br />
-                                Profesión: {voluntario.profesion || 'No especificada'}
+                                <strong>{municipioKey}</strong><br />
+                                Registros agregados: {total}
                             </Tooltip>
                         </Marker>
                     );

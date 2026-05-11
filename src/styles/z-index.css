@@ -1,0 +1,91 @@
+/* Sistema de Z-Index Centralizado para Partido Amarillo */
+
+:root {
+  /* === Z-INDEX HIERARCHY === */
+  
+  /* Base levels - Elementos en el flujo normal */
+  --z-base: 1;
+  --z-elevated: 10;       /* Cards, tooltips */
+  --z-overlay: 100;       /* Dropdowns, popovers */
+  --z-sticky: 500;        /* Headers sticky, navigation */
+  --z-modal: 1000;        /* Modals, dialogs */
+  --z-toast: 2000;        /* Notifications, alerts */
+  --z-debug: 9999;        /* Development tools */
+
+  /* === COMPONENT-SPECIFIC Z-INDEX === */
+  
+  /* Navigation & Layout */
+  --z-mobile-header: var(--z-sticky);                    /* 500 */
+  --z-navigation-drawer: calc(var(--z-modal) - 50);      /* 950 */
+  --z-tab-navigation: calc(var(--z-sticky) + 1);         /* 501 */
+  --z-breadcrumb: calc(var(--z-elevated) + 1);          /* 11 */
+  
+  /* Data Display */
+  --z-table-header: calc(var(--z-elevated) + 5);        /* 15 */
+  --z-card-badge: calc(var(--z-elevated) + 2);          /* 12 */
+  --z-chart-tooltip: calc(var(--z-overlay) + 10);       /* 110 */
+  
+  /* Maps & Geolocation */
+  --z-map-container: var(--z-base);                     /* 1 */
+  --z-map-controls: calc(var(--z-elevated) + 3);        /* 13 */
+  --z-map-popup: calc(var(--z-overlay) + 5);           /* 105 */
+  --z-map-tooltip: calc(var(--z-overlay) + 3);         /* 103 */
+  --z-map-loading: calc(var(--z-overlay) + 20);        /* 120 */
+  
+  /* Interactive Elements */
+  --z-dropdown: calc(var(--z-overlay) + 1);             /* 101 */
+  --z-select-options: calc(var(--z-overlay) + 2);       /* 102 */
+  --z-context-menu: calc(var(--z-overlay) + 15);        /* 115 */
+  
+  /* Modals & Overlays */
+  --z-modal-backdrop: var(--z-modal);                   /* 1000 */
+  --z-modal-content: calc(var(--z-modal) + 1);          /* 1001 */
+  --z-mobile-modal: calc(var(--z-modal) + 2);           /* 1002 */
+  --z-loading-overlay: calc(var(--z-modal) + 10);       /* 1010 */
+  
+  /* Notifications */
+  --z-whatsapp-button: calc(var(--z-sticky) + 10);      /* 510 */
+  --z-toast-notification: var(--z-toast);               /* 2000 */
+  --z-error-boundary: calc(var(--z-toast) + 100);       /* 2100 */
+}
+
+/* === UTILITY CLASSES === */
+
+.z-base { z-index: var(--z-base); }
+.z-elevated { z-index: var(--z-elevated); }
+.z-overlay { z-index: var(--z-overlay); }
+.z-sticky { z-index: var(--z-sticky); }
+.z-modal { z-index: var(--z-modal); }
+.z-toast { z-index: var(--z-toast); }
+
+/* Component-specific utilities */
+.z-mobile-header { z-index: var(--z-mobile-header); }
+.z-navigation-drawer { z-index: var(--z-navigation-drawer); }
+.z-map-controls { z-index: var(--z-map-controls); }
+.z-modal-backdrop { z-index: var(--z-modal-backdrop); }
+.z-modal-content { z-index: var(--z-modal-content); }
+
+/* === DEBUG MODE === */
+@media (min-width: 1024px) {
+  .debug-z-index::before {
+    content: "z: " attr(data-z-index);
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #ff0000;
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+    z-index: var(--z-debug);
+    pointer-events: none;
+  }
+}
+
+/* === RESPONSIVE Z-INDEX === */
+/* En móvil, algunos elementos necesitan z-index diferentes */
+@media (max-width: 767px) {
+  :root {
+    --z-mobile-header: calc(var(--z-sticky) + 100);     /* Mayor prioridad en móvil */
+    --z-map-controls: calc(var(--z-overlay) + 50);      /* Más prominente en móvil */
+  }
+}

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Tooltip, LayersControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { Map } from 'leaflet';
 
 // INTERFACES (Sin cambios)
 interface VotoData {
@@ -11,6 +10,55 @@ interface VotoData {
     votacion: number;
 }
 type Eleccion = 'Senado' | 'Camara';
+
+const FALLBACK_VOTOS_MEDELLIN: Record<Eleccion, Record<string, number>> = {
+    Senado: {
+        'POPULAR': 4334,
+        'SANTA CRUZ': 3346,
+        'MANRIQUE': 6026,
+        'ARANJUEZ': 8285,
+        'CASTILLA': 6855,
+        'DOCE DE OCTUBRE': 6096,
+        'ROBLEDO': 8227,
+        'VILLA HERMOSA': 4812,
+        'BUENOS AIRES': 6903,
+        'LA CANDELARIA': 6678,
+        'LAURELES ESTADIO': 11566,
+        'LA AMÉRICA': 5623,
+        'SAN JAVIER': 4787,
+        'EL POBLADO': 2181,
+        'BELÉN': 9009,
+        'GUAYABAL': 2898,
+        'CORREGIMIENTO DE SAN SEBASTIÁN DE PALMITAS': 425,
+        'CORREGIMIENTO DE SAN CRISTÓBAL': 425,
+        'CORREGIMIENTO DE ALTAVISTA': 426,
+        'CORREGIMIENTO DE SANTA ELENA': 425,
+        'CORREGIMIENTO DE SAN ANTONIO DE PRADO': 425,
+    },
+    Camara: {
+        'POPULAR': 5136,
+        'SANTA CRUZ': 4669,
+        'MANRIQUE': 7087,
+        'ARANJUEZ': 7783,
+        'CASTILLA': 8860,
+        'DOCE DE OCTUBRE': 7558,
+        'ROBLEDO': 10004,
+        'VILLA HERMOSA': 5633,
+        'BUENOS AIRES': 8928,
+        'LA CANDELARIA': 8613,
+        'LAURELES ESTADIO': 15413,
+        'LA AMÉRICA': 7413,
+        'SAN JAVIER': 5667,
+        'EL POBLADO': 3077,
+        'BELÉN': 12144,
+        'GUAYABAL': 3716,
+        'CORREGIMIENTO DE SAN SEBASTIÁN DE PALMITAS': 562,
+        'CORREGIMIENTO DE SAN CRISTÓBAL': 562,
+        'CORREGIMIENTO DE ALTAVISTA': 563,
+        'CORREGIMIENTO DE SANTA ELENA': 562,
+        'CORREGIMIENTO DE SAN ANTONIO DE PRADO': 563,
+    },
+};
 
 // COMPONENTE INTERNO PARA LAS CAPAS DEL MAPA (Refinado)
 const MapLayers = ({ geoJsonData, votosData, eleccion }: { geoJsonData: any, votosData: Record<string, number>, eleccion: Eleccion }) => {
@@ -44,7 +92,7 @@ const MapLayers = ({ geoJsonData, votosData, eleccion }: { geoJsonData: any, vot
     const Legend: React.FC = () => (
         <div className="leaflet-bottom leaflet-right">
             <div className="leaflet-control leaflet-bar bg-white p-2 rounded-md shadow">
-                <h4 className="font-bold mb-1">Votos Pacto Histórico</h4>
+                <h4 className="font-bold mb-1">Votos Partido Amarillo</h4>
                 {/* ... (contenido de la leyenda sin cambios) ... */}
                 <div className="flex items-center"><i style={{ background: '#800026' }} className="w-4 h-4 mr-2"></i><span>&gt; 20,000</span></div>
                 <div className="flex items-center"><i style={{ background: '#BD0026' }} className="w-4 h-4 mr-2"></i><span>10,001 - 20,000</span></div>
@@ -135,6 +183,7 @@ const MapaMedellin: React.FC = () => {
                 setVotosData(votosAgregados);
             } catch (error) {
                 console.error("Error consultando Firestore:", error);
+                setVotosData(FALLBACK_VOTOS_MEDELLIN[eleccion]);
             } finally {
                 setLoading(false);
             }
@@ -146,8 +195,8 @@ const MapaMedellin: React.FC = () => {
     return (
         <div className="h-[calc(100vh-200px)] w-full bg-white rounded-lg shadow-md p-4 relative">
             <div className="absolute top-6 left-20 z-[1000] bg-white p-2 rounded-md shadow-lg flex gap-2">
-                <button onClick={() => setEleccion('Senado')} className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Senado' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'}`}>Senado</button>
-                <button onClick={() => setEleccion('Camara')} className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Camara' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'}`}>Cámara</button>
+                <button onClick={() => setEleccion('Senado')} className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Senado' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-800'}`}>Senado</button>
+                <button onClick={() => setEleccion('Camara')} className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Camara' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-800'}`}>Camara</button>
             </div>
             <MapContainer center={[6.25, -75.58]} zoom={12} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
                 {(!loading && geoJsonData && votosData) && (

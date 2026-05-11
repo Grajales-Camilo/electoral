@@ -12,9 +12,7 @@ import coordenadasJson from '../coordenadas_municipios.json';
 // --- INTERFACES y TIPOS ---
 interface Voluntario {
   id: string;
-  nombre: string;
   municipio: string;
-  profesion?: string;
 }
 
 interface MapaVoluntariosAntioquiaProps {
@@ -82,18 +80,22 @@ const MapaVoluntariosAntioquia: React.FC<MapaVoluntariosAntioquiaProps> = ({ vol
     }, []);
 
     const renderMarkers = () => {
-        return voluntarios
-            .map(voluntario => {
-                const municipioKey = (voluntario.municipio || '').toUpperCase().trim();
+        const counts = voluntarios.reduce<Record<string, number>>((acc, voluntario) => {
+            const municipioKey = (voluntario.municipio || '').toUpperCase().trim();
+            if (municipioKey) acc[municipioKey] = (acc[municipioKey] || 0) + 1;
+            return acc;
+        }, {});
+
+        return Object.entries(counts)
+            .map(([municipioKey, total]) => {
                 const coords = coordenadas[municipioKey];
 
                 if (coords) {
                     return (
-                        <Marker key={voluntario.id} position={coords} icon={defaultIcon}>
+                        <Marker key={municipioKey} position={coords} icon={defaultIcon}>
                             <Tooltip>
-                                <strong>{voluntario.nombre}</strong><br />
-                                {voluntario.municipio}<br />
-                                Profesión: {voluntario.profesion || 'No especificada'}
+                                <strong>{municipioKey}</strong><br />
+                                Registros agregados: {total}
                             </Tooltip>
                         </Marker>
                     );

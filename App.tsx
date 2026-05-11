@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Card } from './src/components/Card';
-import { TutorIcon, DashboardIcon, ReloadIcon, SpinnerIcon, AnalysisIcon, WhatsAppIcon } from './src/components/icons';
+import { ReloadIcon, SpinnerIcon } from './src/components/icons';
+import { BackgroundWrapper } from './src/components/BackgroundWrapper';
 import ResultadosHistoricosView from './src/components/ResultadosHistoricosView';
-import GestionVoluntarios from './src/components/GestionVoluntarios'; // Tarea 2.1: Importar
-
-// URLs de las herramientas
-const VOTANTES = 'URL_VOTANTES';
+import GestionVoluntarios from './src/components/GestionVoluntarios';
+import GestionVotantes from './src/components/GestionVotantes';
 
 // Identificadores para las vistas
 const VISTA_RESULTADOS = 'resultados';
-const VISTA_VOLUNTARIOS = 'voluntarios'; // Tarea 2.2: Nuevo identificador de vista
+const VISTA_VOLUNTARIOS = 'voluntarios';
+const VISTA_VOTANTES = 'votantes';
 
 const App: React.FC = () => {
   const [selectedToolUrl, setSelectedToolUrl] = useState<string | null>(null);
@@ -31,70 +31,58 @@ const App: React.FC = () => {
 
   if (!selectedToolUrl && !selectedView) {
     return (
-      <div className="min-h-screen bg-[#f8f9fa] text-slate-800 font-sans">
-        <header className="bg-white shadow-sm p-4 sticky top-0 z-10">
+      <BackgroundWrapper overlayType="default">
+        <header className="bg-white/20 backdrop-blur-xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-4 sticky top-0 z-20 border-b border-white/30">
             <div className="container mx-auto flex justify-between items-center">
-                <h1 className="text-xl font-bold text-slate-900">
-                  Gestión Campaña IVC 2026
+                <h1 className="text-xl font-bold text-white drop-shadow-lg">
+                  Partido Amarillo | Elecciones 2026
                 </h1>
-                <div className="flex items-center gap-4">
-                  <a
-                    href="https://wa.me/573122060787"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-                  >
-                    <WhatsAppIcon />
-                    Ayuda
-                  </a>
-                </div>
             </div>
         </header>
 
         <main className="container mx-auto px-4 py-12 sm:py-16">
           <div className="text-center mb-12 md:mb-16">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-              La ProgreAPP
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-xl">
+              Dashboard de análisis electoral
             </h1>
-            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-              Selecciona una herramienta.
+            <p className="mt-4 text-base text-white/90 max-w-3xl mx-auto drop-shadow-lg">
+              Diagnóstico territorial, perfil de votantes y redes de voluntariado para tomar decisiones con inteligencia.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8 max-w-7xl mx-auto">
             <Card
               onClick={() => {
                 setSelectedView(VISTA_RESULTADOS);
               }}
-              title={<><DashboardIcon /> Resultados Históricos 👨‍💻📊</>}
-              subtitle="Seguimiento y Analítica"
-              description="Visualiza los resultados electorales históricos del PH, el progreso y los reportes cualitativos de opinión."
+              title="Diagnóstico territorial"
+              subtitle="Mapas, oportunidades y concentración electoral"
+              description="Explora el comportamiento territorial del Partido Amarillo y detecta plazas de volumen, afinidad y baja penetración."
               imageUrl="images/IVC3.png"
             />
             <Card
               onClick={() => {
-                setSelectedView(VISTA_VOLUNTARIOS); // Tarea 2.3: Actualizar onClick
+                setSelectedView(VISTA_VOTANTES);
               }}
-              title={<><TutorIcon /> Voluntari@s 🤳👨‍💻</>}
-              subtitle="Base de Datos Voluntarios y Gestión de Materiales"
-              description="Utiliza esta interfaz para gestionar el trabajo con los voluntarios."
+              title="Perfil de votantes"
+              subtitle="Segmentos, estratos y puestos de votación"
+              description="Consulta patrones de comportamiento y prioriza territorios según potencial, participación y competencia electoral."
               imageUrl="images/IVC4.png"
             />
-              <Card
+            <Card
               onClick={() => {
-                setIsReloading(true);
-                setSelectedToolUrl(VOTANTES);
+                setSelectedView(VISTA_VOLUNTARIOS);
               }}
-              title={<><AnalysisIcon /> Votantes 📋 👩‍⚕️👷</>}
-              subtitle="Filtro de datos y consultas cruzadas"
-              description="Construye vistas de tablas detalladas para el análisis granular del perfil de los votantes."
-              imageUrl="images/IVC1.png"
+              title="Red de voluntariado"
+              subtitle="Cobertura agregada y solicitudes de material"
+              description="Evalúa la capacidad territorial de la red sin exponer datos personales de los voluntarios."
+              imageUrl="images/IVC5.png"
             />
           </div>
         </main>
         <footer className="text-center py-6">
-          <p className="text-sm text-slate-500">© Sistematización campaña Iván Cepeta 2026 - Antioquia.</p>
+          <p className="text-sm text-white/90 drop-shadow">Trabajo final de la ruta de formación en análisis de datos de Estud-IA</p>
         </footer>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
@@ -106,13 +94,17 @@ const App: React.FC = () => {
   if (selectedView === VISTA_VOLUNTARIOS) {
     return <GestionVoluntarios onBack={resetSelection} />;
   }
+
+  if (selectedView === VISTA_VOTANTES) {
+    return <GestionVotantes onBack={resetSelection} />;
+  }
   
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-6 lg:p-8 flex flex-col">
       <div className="flex-shrink-0 mb-4 flex items-center gap-4">
         <button
           onClick={resetSelection}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+          className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 px-4 rounded-lg transition-colors duration-200"
         >
           ← Volver al Menú
         </button>

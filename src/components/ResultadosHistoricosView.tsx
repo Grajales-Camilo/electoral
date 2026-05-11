@@ -1,86 +1,212 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MobileHeader } from './MobileHeader';
+import { ResponsiveTabs } from './ResponsiveTabs';
+import { BackgroundWrapper } from './BackgroundWrapper';
 import MapaAntioquia from './MapaAntioquia';
 import MapaAMVA from './MapaAMVA';
 import MapaMedellin from './MapaMedellin';
 import AnalisisAntioquia from './AnalisisAntioquia';
 import AnalisisAMVA from './AnalisisAMVA';
-import AnalisisMedellin from './AnalisisMedellin'; // Importar el nuevo componente de análisis
+import AnalisisMedellin from './AnalisisMedellin';
 
 type Tab = 'antioquia' | 'amva' | 'medellin';
 
 interface ResultadosHistoricosViewProps {
   onBack: () => void;
+  onNavigateToVoluntarios?: () => void;
+  onNavigateToVotantes?: () => void;
 }
 
-const ResultadosHistoricosView: React.FC<ResultadosHistoricosViewProps> = ({ onBack }) => {
+const ResultadosHistoricosView: React.FC<ResultadosHistoricosViewProps> = ({ onBack, onNavigateToVoluntarios, onNavigateToVotantes }) => {
   const [activeTab, setActiveTab] = useState<Tab>('antioquia');
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const TabButton: React.FC<{tabName: Tab, label: string}> = ({ tabName, label }) => (
-    <button
-      onClick={() => setActiveTab(tabName)}
-      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-        activeTab === tabName
-          ? 'bg-blue-600 text-white shadow'
-          : 'bg-white text-slate-600 hover:bg-slate-100'
-      }`}
-    >
-      {label}
-    </button>
-  );
+  // Función para cambiar tab y hacer scroll al inicio
+  const handleTabChange = (tab: string) => {
+    // Inmediatamente resetear scroll antes de cambiar contenido
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // Cambiar la pestaña activa
+    setActiveTab(tab as Tab);
+  };
+
+  // useEffect que se ejecuta cada vez que cambia activeTab
+  useEffect(() => {
+    // Múltiple estrategia para asegurar scroll al inicio
+    const forceScrollReset = () => {
+      // Reset inmediato sin animación
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      
+      // Si hay algún contenedor con scroll, también resetear
+      const scrollContainers = document.querySelectorAll('[data-scroll-container]');
+      scrollContainers.forEach(container => {
+        (container as HTMLElement).scrollTop = 0;
+      });
+      
+      // Forzar un segundo reset después de que React termine de renderizar
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 10);
+      
+      // Scroll suave final después del render completo
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 50);
+    };
+
+    forceScrollReset();
+  }, [activeTab]);
+
+  const tabs = [
+    { 
+      id: 'antioquia', 
+      label: 'Antioquia', 
+      shortLabel: 'Antioquia'
+    },
+    { 
+      id: 'amva', 
+      label: 'AMVA', 
+      shortLabel: 'AMVA'
+    },
+    { 
+      id: 'medellin', 
+      label: 'Medellín', 
+      shortLabel: 'Medellín'
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-6 lg:p-8 flex flex-col">
-      <div className="flex-shrink-0 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-            <button
-            onClick={onBack}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-            >
-            ← Volver al Menú
-            </button>
-            <h2 className="text-2xl font-bold text-slate-800">Resultados Históricos</h2>
-        </div>
-        
-        <div className="mt-4 sm:mt-0 flex items-center gap-2 p-1 bg-white rounded-lg shadow-sm">
-          <TabButton tabName="antioquia" label="Antioquia" />
-          <TabButton tabName="amva" label="AMVA" />
-          <TabButton tabName="medellin" label="Medellín" />
-        </div>
-      </div>
+    <BackgroundWrapper overlayType="maps">
+      <MobileHeader 
+        title="Diagnostico territorial"
+        showBackButton={true}
+        onBack={onBack}
+        onNavigateToVoluntarios={onNavigateToVoluntarios}
+        onNavigateToVotantes={onNavigateToVotantes}
+      >
+        <ResponsiveTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+        />
+      </MobileHeader>
       
-      <div className="flex-grow w-full">
+      <div ref={containerRef}>
+      
+      <div className="p-4 pb-8 space-y-6" style={{ paddingTop: '2rem' }}>
         {activeTab === 'antioquia' && (
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-1/2">
-              <MapaAntioquia setActiveTab={setActiveTab} />
+          <>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-xl">
+                Diagnostico territorial en Antioquia
+              </h2>
+              <p className="text-white/90 drop-shadow-lg">
+                Afinidad, volumen y oportunidad para el Partido Amarillo
+              </p>
             </div>
-            <div className="lg:w-1/2">
-              <AnalisisAntioquia />
+            
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  Mapa electoral Antioquia
+                </h3>
+              </div>
+              <div className="min-h-[50vh] relative z-0 map-container">
+                <MapaAntioquia setActiveTab={setActiveTab} />
+              </div>
             </div>
-          </div>
+            
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  Analisis estrategico
+                </h3>
+              </div>
+              <div className="p-0">
+                <AnalisisAntioquia />
+              </div>
+            </div>
+          </>
         )}
+        
         {activeTab === 'amva' && (
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-1/2">
-              <MapaAMVA setActiveTab={setActiveTab} />
+          <>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-xl">
+                Diagnostico metropolitano en el AMVA
+              </h2>
+              <p className="text-white/90 drop-shadow-lg">
+                Análisis del área metropolitana del Valle de Aburrá
+              </p>
             </div>
-            <div className="lg:w-1/2">
-              <AnalisisAMVA />
+            
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  Mapa electoral AMVA
+                </h3>
+              </div>
+              <div className="min-h-[50vh] relative z-0 map-container">
+                <MapaAMVA setActiveTab={setActiveTab} />
+              </div>
             </div>
-          </div>
+            
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  Analisis metropolitano
+                </h3>
+              </div>
+              <div className="p-0">
+                <AnalisisAMVA />
+              </div>
+            </div>
+          </>
         )}
+        
         {activeTab === 'medellin' && (
-            <div className="flex flex-col lg:flex-row gap-6">
-              <div className="lg:w-1/2">
+          <>
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-xl">
+                Perfil urbano de Medellin
+              </h2>
+              <p className="text-white/90 drop-shadow-lg">
+                Analisis por comunas de la capital antioquena
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  Mapa electoral Medellin
+                </h3>
+              </div>
+              <div className="min-h-[50vh] relative z-0 map-container">
                 <MapaMedellin />
               </div>
-              <div className="lg:w-1/2">
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200">
+              <div className="p-4 border-b border-slate-200">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  Analisis por comunas
+                </h3>
+              </div>
+              <div className="p-0">
                 <AnalisisMedellin />
               </div>
             </div>
+          </>
         )}
+        </div>
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 };
 

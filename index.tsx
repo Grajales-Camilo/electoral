@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import 'leaflet/dist/leaflet.css'; // Importa los estilos de Leaflet
+import './src/globals.css'; // Importa estilos globales modernos
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

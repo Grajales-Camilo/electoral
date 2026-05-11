@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Tooltip, LayersControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
@@ -15,6 +15,33 @@ type Tab = 'antioquia' | 'amva' | 'medellin';
 interface MapaAMVAProps {
   setActiveTab: (tab: Tab) => void;
 }
+
+const FALLBACK_VOTOS_AMVA: Record<Vuelta, Record<string, number>> = {
+    Primera: {
+        'MEDELLÍN': 77067,
+        'BELLO': 15899,
+        'ITAGÜÍ': 9593,
+        'ENVIGADO': 7841,
+        'COPACABANA': 3319,
+        'SABANETA': 2819,
+        'CALDAS': 2366,
+        'GIRARDOTA': 1995,
+        'LA ESTRELLA': 2214,
+        'BARBOSA': 1582,
+    },
+    Segunda: {
+        'MEDELLÍN': 207642,
+        'BELLO': 41733,
+        'ITAGÜÍ': 29397,
+        'ENVIGADO': 25879,
+        'COPACABANA': 9435,
+        'SABANETA': 9057,
+        'CALDAS': 8582,
+        'GIRARDOTA': 6628,
+        'LA ESTRELLA': 7086,
+        'BARBOSA': 4371,
+    },
+};
 
 // --- COMPONENTE DE CAPAS ---
 const MapLayersAMVA = ({ geoJsonData, votosData, vuelta, setActiveTab }: { geoJsonData: any, votosData: Record<string, number>, vuelta: Vuelta, setActiveTab: (tab: Tab) => void }) => {
@@ -47,7 +74,7 @@ const MapLayersAMVA = ({ geoJsonData, votosData, vuelta, setActiveTab }: { geoJs
     const Legend: React.FC = () => (
         <div className="leaflet-bottom leaflet-right">
             <div className="leaflet-control leaflet-bar bg-white p-2 rounded-md shadow">
-                <h4 className="font-bold mb-1">Votos Gustavo Petro</h4>
+                <h4 className="font-bold mb-1">Votos Gustavo Petro (2022)</h4>
                 <div className="flex items-center"><i style={{ background: '#800026' }} className="w-4 h-4 mr-2"></i><span>&gt; 400,000</span></div>
                 <div className="flex items-center"><i style={{ background: '#BD0026' }} className="w-4 h-4 mr-2"></i><span>200,001 - 400,000</span></div>
                 <div className="flex items-center"><i style={{ background: '#E31A1C' }} className="w-4 h-4 mr-2"></i><span>100,001 - 200,000</span></div>
@@ -154,6 +181,7 @@ const MapaAMVA: React.FC<MapaAMVAProps> = ({ setActiveTab }) => {
                 setVotosData(votosAgregados);
             } catch (error) {
                 console.error("Error consultando Firestore:", error);
+                setVotosData(FALLBACK_VOTOS_AMVA[vuelta]);
             } finally {
                 setLoading(false);
             }
@@ -167,13 +195,13 @@ const MapaAMVA: React.FC<MapaAMVAProps> = ({ setActiveTab }) => {
             <div className="absolute top-6 left-20 z-[1000] bg-white p-2 rounded-md shadow-lg flex gap-2">
                 <button 
                     onClick={() => setVuelta('Primera')}
-                    className={`px-3 py-1 text-sm font-semibold rounded-md ${vuelta === 'Primera' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'}`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-md ${vuelta === 'Primera' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-800'}`}
                 >
                     Primera Vuelta
                 </button>
                 <button 
                     onClick={() => setVuelta('Segunda')}
-                    className={`px-3 py-1 text-sm font-semibold rounded-md ${vuelta === 'Segunda' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'}`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-md ${vuelta === 'Segunda' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-800'}`}
                 >
                     Segunda Vuelta
                 </button>

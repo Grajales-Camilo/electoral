@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, GeoJSON, Tooltip, LayersControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { Map } from 'leaflet';
 
 // INTERFACES
 interface VotoData {
@@ -16,6 +15,31 @@ type Tab = 'antioquia' | 'amva' | 'medellin';
 interface MapaAntioquiaProps {
   setActiveTab: (tab: Tab) => void;
 }
+
+const FALLBACK_VOTOS_ANTIOQUIA: Record<Eleccion, Record<string, number>> = {
+    Senado: {
+        'URABÁ': 14069,
+        'NORTE': 2984,
+        'BAJO CAUCA': 5226,
+        'NORDESTE': 2556,
+        'OCCIDENTE': 2296,
+        'MAGDALENA MEDIO': 2455,
+        'SUROESTE': 4341,
+        'ORIENTE': 16019,
+        'VALLE DE ABURRÁ': 155757,
+    },
+    Camara: {
+        'URABÁ': 15588,
+        'NORTE': 3929,
+        'BAJO CAUCA': 6040,
+        'NORDESTE': 2826,
+        'OCCIDENTE': 2922,
+        'MAGDALENA MEDIO': 5550,
+        'SUROESTE': 7626,
+        'ORIENTE': 18946,
+        'VALLE DE ABURRÁ': 78290,
+    },
+};
 
 // COMPONENTE INTERNO
 const MapLayers = ({ geoJsonData, votosData, eleccion, setActiveTab }: { geoJsonData: any, votosData: Record<string, number>, eleccion: Eleccion, setActiveTab: (tab: Tab) => void }) => {
@@ -48,7 +72,7 @@ const MapLayers = ({ geoJsonData, votosData, eleccion, setActiveTab }: { geoJson
     const Legend: React.FC = () => (
         <div className="leaflet-bottom leaflet-right">
             <div className="leaflet-control leaflet-bar bg-white p-2 rounded-md shadow">
-                <h4 className="font-bold mb-1">Votos Pacto Histórico</h4>
+                <h4 className="font-bold mb-1">Votos Partido Amarillo</h4>
                 <div className="flex items-center"><i style={{ background: '#800026' }} className="w-4 h-4 mr-2"></i><span>&gt; 100,000</span></div>
                 <div className="flex items-center"><i style={{ background: '#BD0026' }} className="w-4 h-4 mr-2"></i><span>50,001 - 100,000</span></div>
                 <div className="flex items-center"><i style={{ background: '#E31A1C' }} className="w-4 h-4 mr-2"></i><span>20,001 - 50,000</span></div>
@@ -150,6 +174,7 @@ const MapaAntioquia: React.FC<MapaAntioquiaProps> = ({ setActiveTab }) => {
                 setVotosData(votosAgregados);
             } catch (error) {
                 console.error("Error consultando Firestore:", error);
+                setVotosData(FALLBACK_VOTOS_ANTIOQUIA[eleccion]);
             } finally {
                 setLoading(false);
             }
@@ -163,13 +188,13 @@ const MapaAntioquia: React.FC<MapaAntioquiaProps> = ({ setActiveTab }) => {
             <div className="absolute top-6 left-20 z-[1000] bg-white p-2 rounded-md shadow-lg flex gap-2">
                 <button 
                     onClick={() => setEleccion('Senado')}
-                    className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Senado' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'}`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Senado' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-800'}`}
                 >
                     Senado
                 </button>
                 <button 
                     onClick={() => setEleccion('Camara')}
-                    className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Camara' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-800'}`}
+                    className={`px-3 py-1 text-sm font-semibold rounded-md ${eleccion === 'Camara' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 text-slate-800'}`}
                 >
                     Cámara
                 </button>
