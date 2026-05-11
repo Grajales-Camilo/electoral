@@ -56,6 +56,7 @@ interface DatoClase {
   votosCentroIzquierda: number;
   votosDerecha: number;
   votosTotal: number;
+  idvClase: number;
   porcCentroIzquierda: number;
   porcDerecha: number;
   votoEsperadoCentroIzquierda: number;
@@ -108,6 +109,7 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
       votosCentroIzquierda: 35431, 
       votosDerecha: 18211, 
       votosTotal: 93996, 
+      idvClase: 45.89,
       porcCentroIzquierda: 37.7, 
       porcDerecha: 19.4, 
       votoEsperadoCentroIzquierda: 54722, 
@@ -121,6 +123,7 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
       votosCentroIzquierda: 108705, 
       votosDerecha: 106106, 
       votosTotal: 139195, 
+      idvClase: 53.87,
       porcCentroIzquierda: 78.1, 
       porcDerecha: 76.2, 
       votoEsperadoCentroIzquierda: 81036, 
@@ -134,6 +137,7 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
       votosCentroIzquierda: 12195, 
       votosDerecha: 24823, 
       votosTotal: 45890, 
+      idvClase: 82.08,
       porcCentroIzquierda: 26.6, 
       porcDerecha: 54.1, 
       votoEsperadoCentroIzquierda: 17556, 
@@ -216,6 +220,12 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
   const totalVotantes = datosClase.reduce((sum, clase) => sum + clase.votantesPotenciales, 0);
   const totalVotos = datosClase.reduce((sum, clase) => sum + clase.votosTotal, 0);
   const idvTotal = ((totalVotos / totalVotantes) * 100);
+  const idvPorClase = datosClase.map((clase) => ({
+    clase: clase.clase,
+    idv: clase.idvClase,
+    votantesPotenciales: clase.votantesPotenciales,
+    votosTotal: clase.votosTotal,
+  }));
   const correlacionCentroIzquierda = correlaciones.find(c => c.candidato === "Centro-Izquierda")?.correlacion || 0;
   const correlacionDerecha = correlaciones.find(c => c.candidato === "Derecha")?.correlacion || 0;
 
@@ -416,6 +426,18 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  {idvPorClase.map((item) => (
+                    <div key={item.clase} className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 text-center">
+                      <h3 className="text-lg font-semibold text-slate-600 mb-2 capitalize">IDV Clase {item.clase}</h3>
+                      <div className="text-3xl font-bold text-amber-600 mb-2">{item.idv.toFixed(2)}%</div>
+                      <p className="text-sm text-slate-500">
+                        {item.votosTotal.toLocaleString()} votos / {item.votantesPotenciales.toLocaleString()} votantes potenciales
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
                 {/* Gráficos */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                   <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
@@ -475,6 +497,14 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
                           label: 'Votos Derecha',
                           render: (value) => (
                             <span className="font-medium text-red-600">{value.toLocaleString()}</span>
+                          )
+                        },
+                        { 
+                          key: 'idvClase', 
+                          label: 'IDV',
+                          sortable: true,
+                          render: (value) => (
+                            <span className="font-bold text-amber-700">{value.toFixed(2)}%</span>
                           )
                         },
                         { 
