@@ -147,19 +147,6 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
     }
   ];
 
-  const correlaciones: AnalisisCorrelacion[] = [
-    {
-      candidato: "Centro-Izquierda",
-      correlacion: -0.065,
-      interpretacion: "Correlación negativa muy débil con el estrato socioeconómico. Los votos por Centro-Izquierda no muestran una tendencia clara según el nivel socioeconómico."
-    },
-    {
-      candidato: "Derecha",
-      correlacion: 0.814,
-      interpretacion: "Correlación positiva fuerte con el estrato socioeconómico. Los votos por Derecha aumentan significativamente en estratos más altos."
-    }
-  ];
-
   // Función para cambiar tab y hacer scroll al inicio
   const handleTabChange = (tab: string) => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -207,6 +194,52 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
     loadData();
   }, []);
 
+  // Función para calcular correlación de Pearson
+  const calcularPearson = (x: number[], y: number[]): number => {
+    if (x.length !== y.length || x.length === 0) return 0;
+    
+    const n = x.length;
+    const mediaX = x.reduce((sum, val) => sum + val, 0) / n;
+    const mediaY = y.reduce((sum, val) => sum + val, 0) / n;
+    
+    let numerador = 0;
+    let sumaCuadradosX = 0;
+    let sumaCuadradosY = 0;
+    
+    for (let i = 0; i < n; i++) {
+      const diferenciaX = x[i] - mediaX;
+      const diferenciaY = y[i] - mediaY;
+      numerador += diferenciaX * diferenciaY;
+      sumaCuadradosX += diferenciaX * diferenciaX;
+      sumaCuadradosY += diferenciaY * diferenciaY;
+    }
+    
+    const denominador = Math.sqrt(sumaCuadradosX * sumaCuadradosY);
+    return denominador === 0 ? 0 : numerador / denominador;
+  };
+
+  // Calcular correlaciones reales basadas en datos de puestos
+  const estratos = datosPuestos.map(p => p.estrato);
+  const porcCentroIzquierda = datosPuestos.map(p => (p.centroIzquierda / p.total) * 100);
+  const porcDerecha = datosPuestos.map(p => (p.derecha / p.total) * 100);
+  
+  const correlacionCICalculada = calcularPearson(estratos, porcCentroIzquierda);
+  const correlacionDerechaCalculada = calcularPearson(estratos, porcDerecha);
+
+  // Definir correlaciones con valores calculados
+  const correlaciones: AnalisisCorrelacion[] = [
+    {
+      candidato: "Centro-Izquierda",
+      correlacion: correlacionCICalculada,
+      interpretacion: `Correlación ${correlacionCICalculada < -0.5 ? "negativa fuerte" : correlacionCICalculada < -0.3 ? "negativa moderada" : correlacionCICalculada < 0 ? "negativa débil" : correlacionCICalculada < 0.3 ? "positiva muy débil" : correlacionCICalculada < 0.5 ? "positiva débil" : "positiva fuerte"} con el estrato socioeconómico (r = ${correlacionCICalculada.toFixed(3)}). Los votos por Centro-Izquierda ${correlacionCICalculada > 0 ? "aumentan" : correlacionCICalculada < 0 ? "disminuyen" : "muestran variación sin tendencia clara"} con el nivel socioeconómico.`
+    },
+    {
+      candidato: "Derecha",
+      correlacion: correlacionDerechaCalculada,
+      interpretacion: `Correlación ${correlacionDerechaCalculada < -0.5 ? "negativa fuerte" : correlacionDerechaCalculada < -0.3 ? "negativa moderada" : correlacionDerechaCalculada < 0 ? "negativa débil" : correlacionDerechaCalculada < 0.3 ? "positiva muy débil" : correlacionDerechaCalculada < 0.5 ? "positiva débil" : "positiva fuerte"} con el estrato socioeconómico (r = ${correlacionDerechaCalculada.toFixed(3)}). Los votos por Derecha ${correlacionDerechaCalculada > 0 ? "aumentan significativamente" : correlacionDerechaCalculada < 0 ? "disminuyen" : "muestran variación sin tendencia clara"} en estratos más altos.`
+    }
+  ];
+
   // Filtrado de puestos de votación
   const puestosFiltrados = useMemo(() => {
     return datosPuestos.filter(puesto => {
@@ -226,8 +259,8 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
     votantesPotenciales: clase.votantesPotenciales,
     votosTotal: clase.votosTotal,
   }));
-  const correlacionCentroIzquierda = correlaciones.find(c => c.candidato === "Centro-Izquierda")?.correlacion || 0;
-  const correlacionDerecha = correlaciones.find(c => c.candidato === "Derecha")?.correlacion || 0;
+  const correlacionCentroIzquierda = correlacionCICalculada;
+  const correlacionDerecha = correlacionDerechaCalculada;
 
   // Datos para gráficos
   const chartBarrasData = {
