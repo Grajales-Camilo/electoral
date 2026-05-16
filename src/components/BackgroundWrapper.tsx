@@ -33,8 +33,7 @@ export const BackgroundWrapper: React.FC<BackgroundWrapperProps> = memo(({
     // Timeout más corto para móviles
     const loadTimeout = setTimeout(() => {
       if (!imageLoaded) {
-        // En lugar de cambiar estado, simplemente no mostrar la imagen
-        console.log('Background image load timeout, using gradient fallback');
+        // En lugar de cambiar estado, simplemente no mostrar la imagen.
       }
     }, isMobile ? 1500 : 3000);
     
@@ -45,7 +44,6 @@ export const BackgroundWrapper: React.FC<BackgroundWrapperProps> = memo(({
     
     img.onerror = () => {
       clearTimeout(loadTimeout);
-      console.log('Background image failed to load, using gradient fallback');
       setImageLoaded(false);
     };
     

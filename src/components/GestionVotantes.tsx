@@ -218,7 +218,7 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
     return denominador === 0 ? 0 : numerador / denominador;
   };
 
-  // Calcular correlaciones reales basadas en datos de puestos
+  // Calcular correlaciones basadas en datos de puestos
   const estratos = datosPuestos.map(p => p.estrato);
   const porcCentroIzquierda = datosPuestos.map(p => (p.centroIzquierda / p.total) * 100);
   const porcDerecha = datosPuestos.map(p => (p.derecha / p.total) * 100);
@@ -617,15 +617,9 @@ const GestionVotantes: React.FC<GestionVotantesProps> = ({ onBack, onNavigateToR
                       />
                     </div>
                     <div className="flex items-end">
-                      <button 
-                        onClick={() => {
-                          // Funcionalidad de exportar datos
-                          console.log('Exportar datos:', puestosFiltrados);
-                        }}
-                        className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
-                      >
-                        Exportar Datos
-                      </button>
+                      <span className="px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-600">
+                        {puestosFiltrados.length} puestos filtrados
+                      </span>
                     </div>
                   </div>
                 </div>
